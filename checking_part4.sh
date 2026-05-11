@@ -84,13 +84,11 @@ done
 
 section "4.1.4 TLS 1.3 VALIDATION"
 
-TLS_VERSION=$(echo | openssl s_client \
+TLS_OUTPUT=$(echo | openssl s_client \
 -connect localhost:443 \
--CAfile "$CA_CERT" 2>/dev/null | grep "Protocol")
+-CAfile "$CA_CERT" 2>/dev/null)
 
-echo "$TLS_VERSION"
-
-if echo "$TLS_VERSION" | grep -q "TLSv1.3"; then
+if echo "$TLS_OUTPUT" | grep -q "Protocol  : TLSv1.3"; then
     pass "TLSv1.3 enabled"
 else
     fail "TLSv1.3 NOT enabled"
@@ -134,15 +132,13 @@ fi
 
 section "4.1.10 UPSTREAM TRUST VALIDATION"
 
-echo "$NGINX_CONF" | grep proxy_ssl
-
-if echo "$NGINX_CONF" | grep -q "proxy_ssl_trusted_certificate"; then
+if echo "$NGINX_CONF" | grep -iq "proxy_ssl_trusted_certificate"; then
     pass "proxy_ssl_trusted_certificate configured"
 else
     fail "proxy_ssl_trusted_certificate missing"
 fi
 
-if echo "$NGINX_CONF" | grep -q "proxy_ssl_verify on"; then
+if echo "$NGINX_CONF" | grep -iq "proxy_ssl_verify on"; then
     pass "proxy_ssl_verify enabled"
 else
     fail "proxy_ssl_verify disabled"
@@ -154,10 +150,7 @@ fi
 
 section "4.1.11 SESSION RESUMPTION"
 
-
-echo "$NGINX_CONF" | grep ssl_session_tickets
-
-if echo "$NGINX_CONF" | grep -q "ssl_session_tickets on"; then
+if echo "$TLS_OUTPUT" | grep -q "TLS session ticket"; then
     pass "TLS session tickets enabled"
 else
     fail "TLS session tickets disabled"
@@ -178,9 +171,7 @@ else
     fail "HTTP/2 not operational"
 fi
 
-echo "$NGINX_CONF" | grep quic
-
-if echo "$NGINX_CONF" | grep -q "quic"; then
+if echo "$NGINX_CONF" | grep -iq "quic"; then
     pass "HTTP/3 QUIC listener configured"
 else
     fail "HTTP/3 QUIC listener missing"
