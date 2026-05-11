@@ -25,17 +25,17 @@
 
     - name: Deploy nginx configs
       template:
-        src: http_redirect_80.j2
+        src: ../templates/http_redirect_80.j2
         dest: /etc/nginx/conf.d/http.conf
 
     - name: Deploy frontend
       template:
-        src: https_frontend_443.j2
+        src: ../templates/https_frontend_443.j2
         dest: /etc/nginx/conf.d/https.conf
 
     - name: Deploy backend
       template:
-        src: backend_mtls_8443.j2
+        src: ../templates/backend_mtls_8443.j2
         dest: /etc/nginx/conf.d/backend.conf
 
     - name: Validate nginx config

@@ -13,7 +13,7 @@ server {
     include snippets/ssl.conf;
 
     # ===== SECURITY HEADERS =====
-    include snippets/security_headers.conf;
+    include snippets/security.conf;
 
     # ===== HSTS + QUIC =====
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
