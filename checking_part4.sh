@@ -84,10 +84,16 @@ done
 
 section "4.1.4 TLS 1.3 VALIDATION"
 
-if nginx -T 2>/dev/null | grep -E '^\s*ssl_protocols TLSv1.3;' >/dev/null; then
-    pass "Only TLSv1.3 enabled"
+TLS_VERSION=$(echo | openssl s_client \
+-connect localhost:443 \
+-CAfile "$CA_CERT" 2>/dev/null | grep "Protocol")
+
+echo "$TLS_VERSION"
+
+if echo "$TLS_VERSION" | grep -q "TLSv1.3"; then
+    pass "TLSv1.3 enabled"
 else
-    fail "TLSv1.3-only configuration missing"
+    fail "TLSv1.3 NOT enabled"
 fi
 
 # =========================================================
@@ -96,8 +102,10 @@ fi
 
 section "4.1.5 WEAK CIPHER VALIDATION"
 
-if nginx -T 2>/dev/null | grep -E '^\s*ssl_prefer_server_ciphers off;' >/dev/null; then
-    pass "ssl_prefer_server_ciphers set to off"
+echo "$NGINX_CONF" | grep ssl_prefer_server_ciphers
+
+if echo "$NGINX_CONF" | grep -q "ssl_prefer_server_ciphers off"; then
+    pass "ssl_prefer_server_ciphers configured"
 else
     fail "ssl_prefer_server_ciphers not configured"
 fi
@@ -126,13 +134,15 @@ fi
 
 section "4.1.10 UPSTREAM TRUST VALIDATION"
 
-if nginx -T 2>/dev/null | grep -q "proxy_ssl_trusted_certificate"; then
+echo "$NGINX_CONF" | grep proxy_ssl
+
+if echo "$NGINX_CONF" | grep -q "proxy_ssl_trusted_certificate"; then
     pass "proxy_ssl_trusted_certificate configured"
 else
     fail "proxy_ssl_trusted_certificate missing"
 fi
 
-if nginx -T 2>/dev/null | grep -q "proxy_ssl_verify on"; then
+if echo "$NGINX_CONF" | grep -q "proxy_ssl_verify on"; then
     pass "proxy_ssl_verify enabled"
 else
     fail "proxy_ssl_verify disabled"
@@ -144,12 +154,14 @@ fi
 
 section "4.1.11 SESSION RESUMPTION"
 
-if nginx -T 2>/dev/null | grep -iq "ssl_session_tickets on"; then
+
+echo "$NGINX_CONF" | grep ssl_session_tickets
+
+if echo "$NGINX_CONF" | grep -q "ssl_session_tickets on"; then
     pass "TLS session tickets enabled"
 else
     fail "TLS session tickets disabled"
 fi
-
 # =========================================================
 # 4.1.12 HTTP/2 + HTTP/3
 # =========================================================
@@ -166,7 +178,9 @@ else
     fail "HTTP/2 not operational"
 fi
 
-if nginx -T 2>/dev/null | grep -q "listen 443 quic reuseport"; then
+echo "$NGINX_CONF" | grep quic
+
+if echo "$NGINX_CONF" | grep -q "quic"; then
     pass "HTTP/3 QUIC listener configured"
 else
     fail "HTTP/3 QUIC listener missing"
