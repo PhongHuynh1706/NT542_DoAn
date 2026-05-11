@@ -4,8 +4,8 @@
   become: yes
   vars_files:
     - ./vars/cert_path.yml
+  
   tasks:
-
     - name: Install nginx
       apt:
         name: nginx
