@@ -3,7 +3,7 @@
   hosts: local
   become: yes
   vars_files:
-    - cert_path.yml
+    - ./vars/cert_path.yml
   tasks:
 
     - name: Install nginx
@@ -23,13 +23,20 @@
         path: /etc/nginx/sites-enabled/default
         state: absent
 
-    - name: Deploy nginx mTLS config
+    - name: Deploy nginx configs
       template:
-        src: templates/part4.j2
-        dest: /etc/nginx/conf.d/part4.conf
-        owner: root
-        group: root
-        mode: '0644'
+        src: http_redirect.conf.j2
+        dest: /etc/nginx/conf.d/http.conf
+
+    - name: Deploy frontend
+      template:
+        src: https_frontend.conf.j2
+        dest: /etc/nginx/conf.d/https.conf
+
+    - name: Deploy backend
+      template:
+        src: backend_mtls.conf.j2
+        dest: /etc/nginx/conf.d/backend.conf
 
     - name: Validate nginx config
       command: nginx -t

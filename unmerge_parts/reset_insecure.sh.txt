@@ -1,0 +1,48 @@
+#!/bin/bash
+echo "[-] Đang gỡ bỏ toàn bộ khiên bảo mật CIS (Phần 5.2 & 5.3)..."
+
+# 1. Khôi phục nginx.conf về mặc định (Không có limit_req, limit_conn, timeout...)
+cat > /etc/nginx/nginx.conf << 'EOF'
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    types_hash_max_size 2048;
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    
+    # Log cơ bản
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+EOF
+
+# 2. Khôi phục default site về mặc định (Không có Security Headers)
+cat > /etc/nginx/sites-available/default << 'EOF'
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    root /var/www/html;
+    index index.html index.htm;
+    server_name _;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+EOF
+
+# Khởi động lại
+nginx -t && systemctl restart nginx
+echo "⚠️ [CẢNH BÁO] NGINX hiện tại KHÔNG CÓ BẢO MẬT. Sẵn sàng để bị tấn công!"

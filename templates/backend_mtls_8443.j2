@@ -1,0 +1,22 @@
+server {
+    listen 8443 ssl;
+    server_name localhost;
+
+    ssl_certificate     {{ ssl_cert }};
+    ssl_certificate_key {{ ssl_key }};
+
+    include snippets/ssl.conf;
+
+    ssl_client_certificate {{ ca_cert }};
+    ssl_verify_client on;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    location /login {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+}

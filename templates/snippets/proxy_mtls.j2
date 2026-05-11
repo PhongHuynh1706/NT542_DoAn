@@ -1,0 +1,11 @@
+proxy_ssl_certificate     {{ client_cert }};
+proxy_ssl_certificate_key {{ client_key }};
+proxy_ssl_trusted_certificate {{ ca_cert }};
+
+proxy_ssl_verify on;
+proxy_ssl_verify_depth 2;
+proxy_ssl_name localhost;
+
+proxy_connect_timeout 5s;
+proxy_read_timeout 30s;
+proxy_send_timeout 30s;
