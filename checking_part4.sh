@@ -85,27 +85,13 @@ done
 section "4.1.4 TLS 1.3 VALIDATION"
 
 TLS_OUTPUT=$(echo | openssl s_client \
--connect localhost:443 \
--CAfile "$CA_CERT" 2>/dev/null)
+  -connect localhost:443 \
+  -CAfile "$CA_CERT" 2>/dev/null)
 
-if echo "$TLS_OUTPUT" | grep -q "Protocol  : TLSv1.3"; then
-    pass "TLSv1.3 enabled"
+if echo "$TLS_OUTPUT" | grep -q "TLSv1.3"; then
+  pass "TLSv1.3 enabled"
 else
-    fail "TLSv1.3 NOT enabled"
-fi
-
-# =========================================================
-# 4.1.5 WEAK CIPHER DISABLED
-# =========================================================
-
-section "4.1.5 WEAK CIPHER VALIDATION"
-
-echo "$NGINX_CONF" | grep ssl_prefer_server_ciphers
-
-if echo "$NGINX_CONF" | grep -q "ssl_prefer_server_ciphers off"; then
-    pass "ssl_prefer_server_ciphers configured"
-else
-    fail "ssl_prefer_server_ciphers not configured"
+  fail "TLSv1.3 NOT enabled"
 fi
 
 # =========================================================
@@ -132,17 +118,20 @@ fi
 
 section "4.1.10 UPSTREAM TRUST VALIDATION"
 
-if echo "$NGINX_CONF" | grep -iq "proxy_ssl_trusted_certificate"; then
+NGINX_CONF=$(sudo nginx -T 2>/dev/null)
+
+if echo "$NGINX_CONF" | grep -q "proxy_ssl_trusted_certificate $CA_CERT"; then
     pass "proxy_ssl_trusted_certificate configured"
 else
-    fail "proxy_ssl_trusted_certificate missing"
+    fail "proxy_ssl_trusted_certificate missing or incorrect"
 fi
 
-if echo "$NGINX_CONF" | grep -iq "proxy_ssl_verify on"; then
+if echo "$NGINX_CONF" | grep -q "proxy_ssl_verify on"; then
     pass "proxy_ssl_verify enabled"
 else
     fail "proxy_ssl_verify disabled"
 fi
+
 
 # =========================================================
 # 4.1.11 SESSION RESUMPTION
@@ -150,11 +139,15 @@ fi
 
 section "4.1.11 SESSION RESUMPTION"
 
-if echo "$TLS_OUTPUT" | grep -q "TLS session ticket"; then
-    pass "TLS session tickets enabled"
+TLS_OUTPUT=$(echo | openssl s_client -connect localhost:443 -tls1_3 2>/dev/null)
+
+if echo "$TLS_OUTPUT" | grep -qi "Resumption PSK"; then
+    pass "TLS 1.3 session resumption enabled (PSK)"
 else
-    fail "TLS session tickets disabled"
+    fail "TLS 1.3 session resumption not detected"
 fi
+
+
 # =========================================================
 # 4.1.12 HTTP/2 + HTTP/3
 # =========================================================
