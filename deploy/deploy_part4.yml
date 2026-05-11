@@ -23,6 +23,28 @@
         path: /etc/nginx/sites-enabled/default
         state: absent
 
+    - name: Create nginx snippets directory
+      file:
+        path: /etc/nginx/snippets
+        state: directory
+        mode: '0755'
+    
+    - name: Deploy SSL snippet
+      template:
+        src: ../templates/snippets/ssl.conf.j2
+        dest: /etc/nginx/snippets/ssl.conf
+        mode: '0644'
+
+    - name: Deploy security snippet
+      template:
+        src: ../templates/snippets/security.conf.j2
+        dest: /etc/nginx/snippets/security.conf
+
+    - name: Deploy proxy mtls snippet
+      template:
+        src: ../templates/snippets/proxy_mtls.conf.j2
+        dest: /etc/nginx/snippets/proxy_mtls.conf
+
     - name: Deploy nginx configs
       template:
         src: ../templates/http_redirect_80.j2
@@ -37,6 +59,11 @@
       template:
         src: ../templates/backend_mtls_8443.j2
         dest: /etc/nginx/conf.d/backend.conf
+
+    - name: Deploy nginx configs
+      template:
+        src: ../templates/global_nginx.j2
+        dest: /etc/nginx/nginx.conf
 
     - name: Validate nginx config
       command: nginx -t
