@@ -2,7 +2,8 @@
 - name: Deploy local nginx mTLS reverse proxy
   hosts: local
   become: yes
-
+  vars_files:
+    - cert_path.yml
   tasks:
 
     - name: Install nginx
@@ -11,9 +12,10 @@
         state: present
         update_cache: yes
 
-    - name: Enable nginx
+    - name: Enable and start nginx
       service:
         name: nginx
+        state: started
         enabled: yes
 
     - name: Remove default nginx site
@@ -33,6 +35,7 @@
       command: nginx -t
       register: nginx_test
       changed_when: false
+      failed_when: nginx_test.rc != 0
 
     - name: Reload nginx
       service:

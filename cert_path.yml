@@ -1,0 +1,7 @@
+ssl_cert: /home/ph/NT542/MyCA/server.crt
+ssl_key: /home/ph/NT542/MyCA/server.key
+
+ca_cert: /home/ph/NT542/MyCA/my-ca.crt
+
+client_cert: /home/ph/NT542/MyCA/nginx-client.crt
+client_key: /home/ph/NT542/MyCA/nginx-client.key
