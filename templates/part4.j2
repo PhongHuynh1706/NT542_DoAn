@@ -37,6 +37,8 @@
 
             proxy_ssl_verify on;
             proxy_ssl_verify_depth 2;
+
+            proxy_ssl_name localhost;
         }
 
         error_page 500 502 503 504 /50x.html;
