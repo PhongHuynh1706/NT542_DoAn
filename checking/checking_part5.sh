@@ -11,7 +11,35 @@ echo -e "${YELLOW}====================================================${NC}\n"
 
 dd if=/dev/zero of=test_3mb.dat bs=1M count=3 >/dev/null 2>&1
 sudo dd if=/dev/zero of=/var/www/html/bigfile.dat bs=1M count=10 >/dev/null 2>&1
+# ---------------------------------------------------------
+# 5.1.1 Giới hạn địa chỉ IP truy cập
+# ---------------------------------------------------------
 
+if sudo nginx -T 2>/dev/null | \
+grep -Eq "allow[[:space:]]+127\.0\.0\.1/32;" && \
+sudo nginx -T 2>/dev/null | \
+grep -Eq "deny[[:space:]]+all;"; then
+
+    echo -e " 🛡️ 5.1.1 IP Access Control         : ${GREEN}[PASS] Đã cấu hình allow/deny IP${NC}"
+else
+    echo -e " ❌ 5.1.1 IP Access Control         : ${RED}[FAIL] Chưa cấu hình allow/deny IP${NC}"
+fi
+
+# ---------------------------------------------------------
+# 5.1.2 Giới hạn phương thức HTTP
+# ---------------------------------------------------------
+
+HTTP_METHOD=$(curl -k -s -o /dev/null -w "%{http_code}" \
+-X TRACE https://127.0.0.1/)
+
+if [ "$HTTP_METHOD" -eq 403 ] || [ "$HTTP_METHOD" -eq 405 ]; then
+    echo -e " 🛡️ 5.1.2 HTTP Method Restriction  : ${GREEN}[PASS] Đã chặn HTTP TRACE (Mã $HTTP_METHOD)${NC}"
+else
+    echo -e " ❌ 5.1.2 HTTP Method Restriction  : ${RED}[FAIL] TRACE vẫn được phép (Mã $HTTP_METHOD)${NC}"
+fi
+# =========================================================
+# PHẦN 5.2 - GIỚI HẠN TÀI NGUYÊN
+# =========================================================
 echo -e "[*] Đang test Phần 5.2: Giới hạn tài nguyên..."
 
 # 1. Test 5.2.1: Ngâm kết nối (Slowloris)
