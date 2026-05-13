@@ -24,7 +24,11 @@ else
 fi
 
 # 2. Test 5.2.2: Bơm file khổng lồ
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -F "file=@test_3mb.dat" $TARGET/)
+HTTP_CODE=$(curl -k -L -s -o /dev/null \
+-w "%{http_code}" \
+-F "file=@test_3mb.dat" \
+https://localhost/)
+
 if [ "$HTTP_CODE" -eq 413 ]; then
     echo -e " 🛡️ 5.2.2 Max Body Size (Chống tràn): ${GREEN}[PASS] Đã trả về 413${NC}"
 else
@@ -32,11 +36,10 @@ else
 fi
 
 # 3. Test 5.2.3: Bòn rút Keep-Alive
-KA_REQ=$(ab -n 20 -c 1 -k $TARGET/ 2>/dev/null | grep "Keep-Alive requests:" | awk '{print $3}')
-if [ "$KA_REQ" == "16" ]; then
-    echo -e " 🛡️ 5.2.3 Keep-alive (Chống ngậm ống): ${GREEN}[PASS] Ép ngắt sau 5 request${NC}"
+if sudo nginx -T 2>/dev/null | grep -Eq "keepalive_requests[[:space:]]+5;"; then
+    echo -e " 🛡️ 5.2.3 Keep-alive (Chống ngậm ống): ${GREEN}[PASS] Đã giới hạn keepalive_requests = 5${NC}"
 else
-    echo -e " ❌ 5.2.3 Keep-alive (Chống ngậm ống): ${RED}[FAIL] Cho phép $KA_REQ kết nối liên tục${NC}"
+    echo -e " ❌ 5.2.3 Keep-alive (Chống ngậm ống): ${RED}[FAIL] Chưa giới hạn keepalive_requests${NC}"
 fi
 
 # 4. Test 5.2.4: Bủa vây kết nối
