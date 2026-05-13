@@ -83,6 +83,7 @@ HTTP_CODE=$(curl -k -L -s -o /dev/null \
 -w "%{http_code}" \
 -F "file=@test_3mb.dat" \
 https://localhost/)
+
 if [ "$HTTP_CODE" -eq 413 ]; then
     echo -e " 🛡️ 5.2.2 Max Body Size (Chống tràn): ${GREEN}[PASS] Đã trả về 413${NC}"
 else
