@@ -139,10 +139,13 @@ fi
 
 section "4.1.11 SESSION RESUMPTION"
 
-TLS_OUTPUT=$(echo | openssl s_client -connect localhost:443 -tls1_3 2>/dev/null)
+TLS_OUTPUT=$(sleep 1 | openssl s_client \
+-connect localhost:443 \
+-tls1_3 2>/dev/null)
 
-if echo "$TLS_OUTPUT" | grep -qi "Resumption PSK"; then
-    pass "TLS 1.3 session resumption enabled (PSK)"
+if echo "$TLS_OUTPUT" | grep -Eqi \
+"New Session Ticket|NewSessionTicket|TLS session ticket|Post-Handshake New Session Ti>
+    pass "TLS 1.3 session resumption enabled"
 else
     fail "TLS 1.3 session resumption not detected"
 fi
