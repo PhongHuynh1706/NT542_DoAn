@@ -144,7 +144,7 @@ TLS_OUTPUT=$(sleep 1 | openssl s_client \
 -tls1_3 2>/dev/null)
 
 if echo "$TLS_OUTPUT" | grep -Eqi \
-"New Session Ticket|NewSessionTicket|TLS session ticket|Post-Handshake New Session Ti>
+"New Session Ticket|NewSessionTicket|TLS session ticket|Post-Handshake New Session Ticket"; then
     pass "TLS 1.3 session resumption enabled"
 else
     fail "TLS 1.3 session resumption not detected"

@@ -78,23 +78,24 @@ else
     echo -e " ❌ 5.3.1 Chống MIME Sniffing   : ${RED}[FAIL] Trống (Trình duyệt sẽ bị lừa chạy file txt)${NC}"
 fi
 
-# 2. Test 5.3.2: XSS Attack
-# Hỏi: Khi truy cập trang chứa mã độc XSS, NGINX có kẹp lệnh CSP để trình duyệt chặn không?
-HEADER_532=$(curl -s -I $TARGET/xss_test.html)
-if echo "$HEADER_532" | grep -qi "Content-Security-Policy"; then
-    echo -e " 🛡️ 5.3.2 Chống XSS (CSP)       : ${GREEN}[PASS] Đã kẹp CSP vào trang web chứa mã độc${NC}"
+# 2. Test 5.2.2: Bơm file khổng lồ
+HTTP_CODE=$(curl -k -L -s -o /dev/null \
+-w "%{http_code}" \
+-F "file=@test_3mb.dat" \
+https://localhost/)
+if [ "$HTTP_CODE" -eq 413 ]; then
+    echo -e " 🛡️ 5.2.2 Max Body Size (Chống tràn): ${GREEN}[PASS] Đã trả về 413${NC}"
 else
-    echo -e " ❌ 5.3.2 Chống XSS (CSP)       : ${RED}[FAIL] Trống (Trình duyệt sẽ bị dính XSS)${NC}"
+    echo -e " ❌ 5.2.2 Max Body Size (Chống tràn): ${RED}[FAIL] Đã nhận file rác (Mã $HTTP_CODE)${NC}"
 fi
 
-# 3. Test 5.3.3: Rò rỉ Referrer
-# Hỏi: Khi chuyển hướng, NGINX có gửi lệnh ẩn URL nhạy cảm không?
-HEADER_533=$(curl -s -I $TARGET/)
-if echo "$HEADER_533" | grep -qi "Referrer-Policy: strict-origin"; then
-    echo -e " 🛡️ 5.3.3 Chống rò rỉ URL       : ${GREEN}[PASS] Đã bật Referrer Policy${NC}"
+# 3. Test 5.2.3: Bòn rút Keep-Alive
+if sudo nginx -T 2>/dev/null | grep -Eq "keepalive_requests[[:space:]]+5;"; then
+    echo -e " 🛡️ 5.2.3 Keep-alive (Chống ngậm ống): ${GREEN}[PASS] Đã giới hạn keepalive_requests = 5${NC}"
 else
-    echo -e " ❌ 5.3.3 Chống rò rỉ URL       : ${RED}[FAIL] Trống (Dễ rò rỉ URL nhạy cảm cho bên thứ 3)${NC}"
+    echo -e " ❌ 5.2.3 Keep-alive (Chống ngậm ống): ${RED}[FAIL] Chưa giới hạn keepalive_requests${NC}"
 fi
+
 
 # --- BƯỚC 3: DỌN DẸP CHIẾN TRƯỜNG ---
 sudo rm -f /var/www/html/attack.txt /var/www/html/xss_test.html
